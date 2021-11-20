@@ -9,8 +9,8 @@ using TwitchLib.Client;
 using TwitchLib.Client.Models;
 using TwitchLib.Communication.Clients;
 
-const string chessDotComUserName = "collaborative_chess";
-const string twitchUsername = chessDotComUserName;
+const string chessDotComUserName = "twitch_plays_chessdot";
+const string twitchUsername = "twitch_plays_chessdotcom";
 
 Dictionary<char, PieceType> pieceLetterToTypes = new()
 {
