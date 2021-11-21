@@ -272,8 +272,9 @@ async Task<Dictionary<string, int>> CollectVotesAsync(ChannelReader<Vote> votesC
                 string normalizedMove = vote.Move.Replace("x", "");
                 if (!moveVotes.ContainsKey(normalizedMove))
                 {
-                    await AddArrowAsync(page, legalMoves[vote.Move]);
                     moveVotes[normalizedMove] = 1;
+                    await AddArrowAsync(page, legalMoves[vote.Move]);
+                    await UpdateArrowsOpacity(page, moveVotes, legalMoves);
                 }
                 else
                 {
@@ -309,6 +310,25 @@ async Task AddArrowAsync(IPage page, Move move)
     await page.Mouse.DownAsync(new MouseDownOptions { Button = MouseButton.Right });
     await page.Mouse.MoveAsync(dstX, dstY);
     await page.Mouse.UpAsync(new MouseUpOptions { Button = MouseButton.Right });
+}
+
+async Task UpdateArrowsOpacity(IPage page, Dictionary<string, int> votes, Dictionary<string, Move> legalMoves)
+{
+    int maxVotes = votes.Values.Max();
+
+    var arrowElements = await page.QuerySelectorAllAsync("chess-board .arrow");
+    foreach (var arrowEl in arrowElements)
+    {
+        string dataArrowAttribute = (await arrowEl.GetAttributeAsync("data-arrow"))!;
+        (int, int) src = (FileToX(dataArrowAttribute[0]), RankToY(dataArrowAttribute[1]));
+        (int, int) dst = (FileToX(dataArrowAttribute[2]), RankToY(dataArrowAttribute[3]));
+
+        var move = legalMoves.First(kvp => kvp.Value.Src == src && kvp.Value.Dst == dst);
+        int votesForMove = votes[move.Value.AlgebraicNotation.Replace("x", "")];
+        float opacity = (float)votesForMove / maxVotes;
+
+        await arrowElements[0].EvaluateAsync($"a => a.style.opacity = {opacity}");
+    }
 }
 
 async Task ProcessMove(IPage page, Move move)
@@ -474,6 +494,8 @@ void ListenForUserJoinLeft(TwitchClient twitchClient)
 string XyToFileRank(int x, int y) => XToFile(x).ToString() + YToRank(y);
 char XToFile(int x) => (char)(x + 'a');
 char YToRank(int y) => (char)(y + '0' + 1);
+int FileToX(char file) => file - 'a';
+int RankToY(char rank) => rank - '0' - 1;
 string XyToSquareClass(int x, int y) => ".square-" + (x + 1) + (y + 1);
 
 record Move(Piece Piece, (int x, int y) Src, (int x, int y) Dst, bool Capture)
