@@ -269,6 +269,7 @@ async Task<Dictionary<string, int>> CollectVotesAsync(ChannelReader<Vote> votesC
                     continue;
                 }
 
+                Console.WriteLine($"{vote.Username} voted for {vote.Move}");
                 string normalizedMove = vote.Move.Replace("x", "");
                 if (!moveVotes.ContainsKey(normalizedMove))
                 {
@@ -480,7 +481,6 @@ void ListenForVotes(TwitchClient twitchClient, ChannelWriter<Vote> votesChan)
         }
 
         var vote = new Vote(e.ChatMessage.Message.TrimStart('!'), e.ChatMessage.Username);
-        Console.WriteLine($"{vote.Username} voted for {vote.Move}");
         votesChan.TryWrite(vote);
     };
 }
