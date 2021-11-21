@@ -252,7 +252,7 @@ async Task<Dictionary<string, int>> CollectVotesAsync(ChannelReader<Vote> votesC
     do
     {
         HashSet<string> usernames = new(StringComparer.Ordinal);
-        CancellationTokenSource voteStopCts = new(TimeSpan.FromMinutes(1));
+        CancellationTokenSource voteStopCts = new(TimeSpan.FromSeconds(30));
         try
         {
             await foreach (var vote in votesChan.ReadAllAsync(voteStopCts.Token))
