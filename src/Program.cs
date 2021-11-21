@@ -118,6 +118,8 @@ async Task CloseBottomBannerAsync(IPage page)
 
 async Task StartOfflineGameAsync(IPage page)
 {
+    await page.GotoAsync("home");
+
     // Play against computer.
     await page.RunAndWaitForNavigationAsync(() => page.ClickAsync("#quick-link-computer"),
         new PageRunAndWaitForNavigationOptions { UrlString = "**/play/computer" });
