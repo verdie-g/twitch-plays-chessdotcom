@@ -46,7 +46,7 @@ await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeL
 var chessPage = await browser.NewPageAsync(new BrowserNewPageOptions
 {
     ScreenSize = new ScreenSize { Width = 1920, Height = 1080 },
-    ViewportSize = new ViewportSize { Width = 1420, Height = 800 },
+    ViewportSize = new ViewportSize { Width = 1600, Height = 900 },
     UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36",
     BaseURL = "https://www.chess.com",
 });
