@@ -174,6 +174,11 @@ async Task RunGameAsync(IPage page, TwitchClient twitchClient)
         else
         {
             var moveVotes = await CollectVotesAsync(votesChan.Reader, legalMoves, twitchClient, page);
+            if (await HasGameEndedAsync(page))
+            {
+                break;
+            }
+
             Console.WriteLine("---------------------------------------------------"); // Mark the end of the turn.
             string moveStr = moveVotes.OrderByDescending(v => v.Value).First().Key;
             await ProcessMove(page, legalMoves[moveStr]);
