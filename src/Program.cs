@@ -153,7 +153,10 @@ async Task RunGameAsync(IPage page, TwitchClient twitchClient)
     {
         await WaitForTurnAsync(page, playerColor);
     }
-
+    for (int i = 0; i < 18; i++)
+    {
+    Console.WriteLine();
+    }
     do
     {
         if (await HasGameEndedAsync(page))
@@ -368,10 +371,6 @@ async Task PromotePawnIfPossibleAsync(IPage page)
 async Task WaitForMoveAnimationAsync(IPage page)
 {
     var board = (await page.QuerySelectorAsync("chess-board"))!;
-    for (int i = 0; i < 18; i++)
-    {
-    Console.WriteLine();
-    }
     while (true)
     {
         try
