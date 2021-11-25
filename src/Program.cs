@@ -157,6 +157,7 @@ async Task RunGameAsync(IPage page, TwitchClient twitchClient)
     {
     Console.WriteLine();
     }
+    Console.WriteLine("Type a command like !e4 to play");
     do
     {
         if (await HasGameEndedAsync(page))
