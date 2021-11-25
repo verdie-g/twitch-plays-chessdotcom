@@ -368,6 +368,10 @@ async Task PromotePawnIfPossibleAsync(IPage page)
 async Task WaitForMoveAnimationAsync(IPage page)
 {
     var board = (await page.QuerySelectorAsync("chess-board"))!;
+    for (int i = 0; i < 18; i++)
+    {
+    Console.WriteLine();
+    }
     while (true)
     {
         try
