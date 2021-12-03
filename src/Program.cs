@@ -268,22 +268,22 @@ async Task<Dictionary<string, int>> CollectVotesAsync(ChannelReader<Vote> votesC
             {
                 if (usernames.Contains(vote.Username))
                 {
-                    twitchClient.SendWhisper(vote.Username, "You already voted for this turn.");
+                    Console.WriteLine($"{vote.Username} already voted for this turn");
                     continue;
                 }
 
-                if (!legalMoves.ContainsKey(vote.Move))
+                if (!legalMoves.TryGetValue(vote.Move, out Move? move))
                 {
-                    twitchClient.SendWhisper(vote.Username, "Invalid move.");
+                    Console.WriteLine($"{vote.Username} voted for an invalid move ({vote.Move}");
                     continue;
                 }
 
-                Console.WriteLine($"{vote.Username} voted for {vote.Move}");
+                Console.WriteLine($"{vote.Username} voted for {move.AlgebraicNotation}");
                 string normalizedMove = vote.Move.Replace("x", "");
                 if (!moveVotes.ContainsKey(normalizedMove))
                 {
                     moveVotes[normalizedMove] = 1;
-                    await AddArrowAsync(page, legalMoves[vote.Move]);
+                    await AddArrowAsync(page, move);
                     await UpdateArrowsOpacity(page, moveVotes, legalMoves);
                 }
                 else
