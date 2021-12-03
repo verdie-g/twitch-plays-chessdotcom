@@ -70,6 +70,7 @@ async Task LoginAsync(IPage page)
             new PageGotoOptions { WaitUntil = WaitUntilState.Load });
         await page.FillAsync("#username", chessDotComUserName);
         await page.FillAsync("#password", chessDotComPassword);
+        await page.CheckAsync("#_remember_me");
         await page.ClickAsync("#login");
         if (!page.Url.EndsWith("/home", StringComparison.Ordinal))
         {
