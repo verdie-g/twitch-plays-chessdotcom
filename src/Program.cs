@@ -54,7 +54,7 @@ var chessPage = await browser.NewPageAsync(new BrowserNewPageOptions
 await LoginAsync(chessPage);
 while (true)
 {
-    await StartOfflineGameAsync(chessPage);
+    await StartOfflineGameAsync(chessPage, "pokimanebot");
     // await StartOnlineGameAsync(page);
     await RunGameAsync(chessPage, twitch);
     await Task.Delay(TimeSpan.FromSeconds(15));
@@ -117,7 +117,7 @@ async Task CloseBottomBannerAsync(IPage page)
     await buttonEl.ClickAsync();
 }
 
-async Task StartOfflineGameAsync(IPage page)
+async Task StartOfflineGameAsync(IPage page, string botName)
 {
     await page.GotoAsync("home");
 
@@ -126,6 +126,7 @@ async Task StartOfflineGameAsync(IPage page)
         new PageRunAndWaitForNavigationOptions { UrlString = "**/play/computer" });
 
     // Select opponent.
+    await page.ClickAsync($"[data-bot-name=\"{botName}\"]");
     await page.ClickAsync(".selection-menu-footer > button");
 
     // Play.
