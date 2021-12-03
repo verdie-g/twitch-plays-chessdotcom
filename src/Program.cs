@@ -275,7 +275,7 @@ async Task<Dictionary<string, int>> CollectVotesAsync(ChannelReader<Vote> votesC
 
                 if (!legalMoves.TryGetValue(vote.Move, out Move? move))
                 {
-                    Console.WriteLine($"{vote.Username} voted for an invalid move ({vote.Move}");
+                    Console.WriteLine($"{vote.Username} voted for an invalid move ({vote.Move})");
                     continue;
                 }
 
