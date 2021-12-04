@@ -182,7 +182,7 @@ async Task RunGameAsync(IPage page, TwitchClient twitchClient)
             }
 
             Console.WriteLine("---------------------------------------------------"); // Mark the end of the turn.
-            string moveStr = moveVotes.OrderByDescending(v => v.Value).First().Key;
+            string moveStr = ComputeWinningMove(moveVotes);
             await ProcessMove(page, legalMoves[moveStr]);
         }
 
@@ -355,6 +355,16 @@ async Task ProcessMove(IPage page, Move move)
 
     await PromotePawnIfPossibleAsync(page);
     await WaitForMoveAnimationAsync(page);
+}
+
+string ComputeWinningMove(Dictionary<string, int> moveVotes)
+{
+    int maxVote = moveVotes.Max(v => v.Value);
+    var candidates = moveVotes
+        .OrderByDescending(v => v.Value)
+        .TakeWhile(v => v.Value == maxVote)
+        .ToArray();
+    return candidates[Random.Shared.Next(candidates.Length)].Key;
 }
 
 async Task PromotePawnIfPossibleAsync(IPage page)
