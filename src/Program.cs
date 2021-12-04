@@ -508,8 +508,9 @@ void ListenForVotes(TwitchClient twitchClient, ChannelWriter<Vote> votesChan)
 
 void ListenForUserJoinLeft(TwitchClient twitchClient)
 {
-    twitchClient.OnUserJoined += (_, _) => viewers += 1;
-    twitchClient.OnUserLeft += (_, _) => viewers -= 1;
+    void PrintViewers() => Console.WriteLine($"{viewers} viewers are currently playing");
+    twitchClient.OnUserJoined += (_, _) => { viewers += 1; PrintViewers(); };
+    twitchClient.OnUserLeft += (_, _) => { viewers -= 1; PrintViewers(); };
 }
 
 string XyToFileRank(int x, int y) => XToFile(x).ToString() + YToRank(y);
