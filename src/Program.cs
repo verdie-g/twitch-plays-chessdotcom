@@ -54,6 +54,7 @@ var chessPage = await browser.NewPageAsync(new BrowserNewPageOptions
 await LoginAsync(chessPage);
 while (true)
 {
+    Console.Clear();
     await StartOfflineGameAsync(chessPage, "pokimanebot");
     // await StartOnlineGameAsync(page);
     await RunGameAsync(chessPage, twitch);
