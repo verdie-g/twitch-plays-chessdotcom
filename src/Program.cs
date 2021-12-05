@@ -32,11 +32,7 @@ Dictionary<PieceType, char> pieceTypeToLetter = new()
     [PieceType.Pawn] = 'P',
 };
 
-int viewers = 0;
-
 TwitchClient twitch = CreateTwitchClient();
-ListenForUserJoinLeft(twitch);
-
 using var playwright = await Playwright.CreateAsync();
 await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
 {
@@ -176,7 +172,7 @@ async Task RunGameAsync(IPage page, TwitchClient twitchClient)
         }
         else
         {
-            var moveVotes = await CollectVotesAsync(votesChan.Reader, legalMoves, twitchClient, page);
+            var moveVotes = await CollectVotesAsync(votesChan.Reader, legalMoves, page);
             if (await HasGameEndedAsync(page))
             {
                 break;
@@ -257,7 +253,7 @@ async Task<List<Move>> ComputeLegalMoves(IPage page, PieceColor color)
 }
 
 async Task<Dictionary<string, int>> CollectVotesAsync(ChannelReader<Vote> votesChan,
-    Dictionary<string, Move> legalMoves, TwitchClient twitchClient, IPage page)
+    Dictionary<string, Move> legalMoves, IPage page)
 {
     Dictionary<string, int> moveVotes = new(StringComparer.OrdinalIgnoreCase);
     do
@@ -501,13 +497,6 @@ void ListenForVotes(TwitchClient twitchClient, ChannelWriter<Vote> votesChan)
         var vote = new Vote(e.ChatMessage.Message.TrimStart('!'), e.ChatMessage.Username);
         votesChan.TryWrite(vote);
     };
-}
-
-void ListenForUserJoinLeft(TwitchClient twitchClient)
-{
-    void PrintViewers() => Console.WriteLine($"{viewers} viewers are currently playing");
-    twitchClient.OnUserJoined += (_, _) => { viewers += 1; PrintViewers(); };
-    twitchClient.OnUserLeft += (_, _) => { viewers -= 1; PrintViewers(); };
 }
 
 string XyToFileRank(int x, int y) => XToFile(x).ToString() + YToRank(y);
