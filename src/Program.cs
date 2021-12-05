@@ -360,12 +360,9 @@ async Task ProcessMove(IPage page, Move move)
 
 string ComputeWinningMove(Dictionary<string, int> moveVotes)
 {
-    int maxVote = moveVotes.Max(v => v.Value);
-    var candidates = moveVotes
-        .OrderByDescending(v => v.Value)
-        .TakeWhile(v => v.Value == maxVote)
-        .ToArray();
-    return candidates[Random.Shared.Next(candidates.Length)].Key;
+    KeyValuePair<string, int>[] moveVotesCollection = moveVotes.OrderByDescending(v => v.Value).ToArray();
+    int candidatesEndIdx = Array.FindLastIndex(moveVotesCollection, v => v.Value == moveVotesCollection[0].Value);
+    return moveVotesCollection[Random.Shared.Next(candidatesEndIdx)].Key;
 }
 
 async Task PromotePawnIfPossibleAsync(IPage page)
