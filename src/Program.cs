@@ -163,13 +163,7 @@ async Task RunGameAsync(IPage page, TwitchClient twitchClient)
         Dictionary<string, Move> legalMoves = new(StringComparer.OrdinalIgnoreCase);
         foreach (var m in await ComputeLegalMoves(page, playerColor))
         {
-            legalMoves[m.AlgebraicNotation] = m;
-
-            string normalizedMove = m.AlgebraicNotation.Replace("x", "");
-            if (normalizedMove != m.AlgebraicNotation)
-            {
-                legalMoves[m.AlgebraicNotation] = m;
-            }
+            legalMoves[m.AlgebraicNotation.Replace("x", "")] = m;
         }
 
         if (legalMoves.Count == 1)
@@ -185,8 +179,8 @@ async Task RunGameAsync(IPage page, TwitchClient twitchClient)
             }
 
             Console.WriteLine("---------------------------------------------------"); // Mark the end of the turn.
-            string moveStr = ComputeWinningMove(moveVotes);
-            await ProcessMove(page, legalMoves[moveStr]);
+            Move winningMove = ComputeWinningMove(moveVotes);
+            await ProcessMove(page, winningMove);
         }
 
         if (await HasGameEndedAsync(page))
@@ -258,10 +252,10 @@ async Task<List<Move>> ComputeLegalMoves(IPage page, PieceColor color)
     return MovesToAlgebraicNotation(moves);
 }
 
-async Task<Dictionary<string, int>> CollectVotesAsync(ChannelReader<Vote> votesChan,
+async Task<Dictionary<Move, int>> CollectVotesAsync(ChannelReader<Vote> votesChan,
     Dictionary<string, Move> legalMoves, IPage page)
 {
-    Dictionary<string, int> moveVotes = new(StringComparer.OrdinalIgnoreCase);
+    Dictionary<Move, int> moveVotes = new();
     do
     {
         HashSet<string> usernames = new(StringComparer.Ordinal);
@@ -276,23 +270,22 @@ async Task<Dictionary<string, int>> CollectVotesAsync(ChannelReader<Vote> votesC
                     continue;
                 }
 
-                if (!legalMoves.TryGetValue(vote.Move, out Move? move))
+                if (!legalMoves.TryGetValue(vote.Move.Replace("x", ""), out Move? move))
                 {
                     Console.WriteLine($"{vote.Username} voted for an invalid move ({vote.Move})");
                     continue;
                 }
 
                 Console.WriteLine($"{vote.Username} voted for {move.AlgebraicNotation}");
-                string normalizedMove = vote.Move.Replace("x", "");
-                if (!moveVotes.ContainsKey(normalizedMove))
+                if (!moveVotes.ContainsKey(move))
                 {
-                    moveVotes[normalizedMove] = 1;
+                    moveVotes[move] = 1;
                     await AddArrowAsync(page, move);
                     await UpdateArrowsOpacity(page, moveVotes, legalMoves);
                 }
                 else
                 {
-                    moveVotes[normalizedMove] += 1;
+                    moveVotes[move] += 1;
                 }
 
                 usernames.Add(vote.Username);
@@ -326,7 +319,7 @@ async Task AddArrowAsync(IPage page, Move move)
     await page.Mouse.UpAsync(new MouseUpOptions { Button = MouseButton.Right });
 }
 
-async Task UpdateArrowsOpacity(IPage page, Dictionary<string, int> votes, Dictionary<string, Move> legalMoves)
+async Task UpdateArrowsOpacity(IPage page, Dictionary<Move, int> votes, Dictionary<string, Move> legalMoves)
 {
     int maxVotes = votes.Values.Max();
 
@@ -338,7 +331,7 @@ async Task UpdateArrowsOpacity(IPage page, Dictionary<string, int> votes, Dictio
         (int, int) dst = (FileToX(dataArrowAttribute[2]), RankToY(dataArrowAttribute[3]));
 
         var move = legalMoves.First(kvp => kvp.Value.Src == src && kvp.Value.Dst == dst);
-        int votesForMove = votes[move.Value.AlgebraicNotation.Replace("x", "")];
+        int votesForMove = votes[move.Value];
         float opacity = (float)votesForMove / maxVotes;
 
         await arrowElements[0].EvaluateAsync($"a => a.style.opacity = {opacity}");
@@ -360,9 +353,9 @@ async Task ProcessMove(IPage page, Move move)
     await WaitForMoveAnimationAsync(page);
 }
 
-string ComputeWinningMove(Dictionary<string, int> moveVotes)
+Move ComputeWinningMove(Dictionary<Move, int> moveVotes)
 {
-    KeyValuePair<string, int>[] moveVotesCollection = moveVotes.OrderByDescending(v => v.Value).ToArray();
+    KeyValuePair<Move, int>[] moveVotesCollection = moveVotes.OrderByDescending(v => v.Value).ToArray();
     int candidatesEndIdx = Array.FindLastIndex(moveVotesCollection, v => v.Value == moveVotesCollection[0].Value);
     return moveVotesCollection[Random.Shared.Next(candidatesEndIdx)].Key;
 }
