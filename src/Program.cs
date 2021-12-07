@@ -180,7 +180,6 @@ async Task RunGameAsync(IPage page, TwitchClient twitchClient)
                 break;
             }
 
-            Console.WriteLine("---------------------------------------------------"); // Mark the end of the turn.
             Move winningMove = ComputeWinningMove(moveVotes);
             await ProcessMove(page, winningMove);
         }
@@ -195,6 +194,7 @@ async Task RunGameAsync(IPage page, TwitchClient twitchClient)
         }
 
         await WaitForTurnAsync(page, playerColor);
+        Console.WriteLine("---------------------------------------------------"); // Mark the end of the turn.
     } while (true);
 }
 
