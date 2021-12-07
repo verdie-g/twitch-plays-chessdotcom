@@ -12,6 +12,8 @@ using TwitchLib.Communication.Clients;
 const string chessDotComUserName = "twitch_plays_chessdot";
 const string twitchUsername = "twitch_plays_chessdotcom";
 
+TimeSpan streamDelay = TimeSpan.FromSeconds(int.Parse(Environment.GetEnvironmentVariable("TWITCH_DELAY") ?? "0"));
+
 Dictionary<char, PieceType> pieceLetterToTypes = new()
 {
     ['k'] = PieceType.King,
@@ -183,6 +185,10 @@ async Task RunGameAsync(IPage page, TwitchClient twitchClient)
             await ProcessMove(page, winningMove);
         }
 
+        // Viewers could sometimes see that it's their turn but because of the stream delay, their vote is received too
+        // late. So discard votes for a while at the end of a turn.
+        await DiscardLateMovesAsync(votesChan.Reader);
+
         if (await HasGameEndedAsync(page))
         {
             break;
@@ -236,6 +242,28 @@ async Task<bool> HasGameEndedAsync(IPage page)
 {
     var gameOverModalEl = await page.QuerySelectorAsync(".modal-game-over-component");
     return gameOverModalEl != null;
+}
+
+async Task DiscardLateMovesAsync(ChannelReader<Vote> votesChan)
+{
+    int discardedVotes = 0;
+    CancellationTokenSource cts = new(streamDelay);
+    do
+    {
+        try
+        {
+            await votesChan.ReadAsync(cts.Token);
+            discardedVotes += 1;
+        }
+        catch (TaskCanceledException)
+        {
+        }
+    } while (!cts.IsCancellationRequested);
+
+    if (discardedVotes != 0)
+    {
+        Console.WriteLine($"Discarded {discardedVotes} late votes");
+    }
 }
 
 async Task<List<Move>> ComputeLegalMoves(IPage page, PieceColor color)
