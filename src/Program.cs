@@ -159,6 +159,12 @@ async Task StartOnlineGameAsync(IPage page, string? playerName)
 
     // Play.
     await page.ClickAsync(".new-game-margin-component > button");
+
+    // Wait for game to start by looking for the chat icon.
+    while (!await page.IsVisibleAsync(".quick-chat-icon-bottom"))
+    {
+        await Task.Delay(TimeSpan.FromSeconds(1));
+    }
 }
 
 async Task RunGameAsync(IPage page, TwitchClient twitchClient)
