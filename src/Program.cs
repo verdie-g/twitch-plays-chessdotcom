@@ -135,11 +135,7 @@ async Task CloseBottomBannerAsync(IPage page)
 
 async Task StartOfflineGameAsync(IPage page, string botName)
 {
-    await page.GotoAsync("home");
-
-    // Play against computer.
-    await page.RunAndWaitForNavigationAsync(() => page.ClickAsync("#quick-link-computer"),
-        new PageRunAndWaitForNavigationOptions { UrlString = "**/play/computer" });
+    await page.GotoAsync("play/computer");
 
     // Select opponent.
     await page.ClickAsync($"[data-bot-name=\"{botName}\"]");
@@ -151,11 +147,7 @@ async Task StartOfflineGameAsync(IPage page, string botName)
 
 async Task StartOnlineGameAsync(IPage page, string? playerName)
 {
-    await page.GotoAsync("home");
-
-    // New Game.
-    await page.RunAndWaitForNavigationAsync(() => page.ClickAsync("#quick-link-new_game"),
-        new PageRunAndWaitForNavigationOptions { UrlString = "**/play/online" });
+    await page.GotoAsync("play/online");
 
     // Play.
     await page.ClickAsync(".new-game-margin-component > button");
