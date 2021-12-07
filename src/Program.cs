@@ -34,6 +34,12 @@ Dictionary<PieceType, char> pieceTypeToLetter = new()
     [PieceType.Pawn] = 'P',
 };
 
+if (args.Length == 0)
+{
+    Console.Error.WriteLine("use:\n- offline [botname]\n- online  [playername]");
+    return;
+}
+
 TwitchClient twitch = CreateTwitchClient();
 using var playwright = await Playwright.CreateAsync();
 await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
@@ -53,8 +59,19 @@ await LoginAsync(chessPage);
 while (true)
 {
     Console.Clear();
-    await StartOfflineGameAsync(chessPage, "pokimanebot");
-    // await StartOnlineGameAsync(page);
+    if (args[0] == "offline")
+    {
+        await StartOfflineGameAsync(chessPage, args[1]);
+    }
+    else if (args[0] == "online")
+    {
+        await StartOnlineGameAsync(chessPage, args[1]);
+    }
+    else
+    {
+        Console.Error.WriteLine($"Invalid mode '{args[0]}'");
+    }
+
     await RunGameAsync(chessPage, twitch);
     await Task.Delay(TimeSpan.FromSeconds(15));
 }
@@ -132,7 +149,7 @@ async Task StartOfflineGameAsync(IPage page, string botName)
     await page.ClickAsync(".selection-menu-footer > button");
 }
 
-async Task StartOnlineGameAsync(IPage page)
+async Task StartOnlineGameAsync(IPage page, string? playerName)
 {
     await page.GotoAsync("home");
 
