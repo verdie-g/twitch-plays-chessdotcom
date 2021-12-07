@@ -278,7 +278,7 @@ async Task DiscardLateMovesAsync(ChannelReader<Vote> votesChan)
             await votesChan.ReadAsync(cts.Token);
             discardedVotes += 1;
         }
-        catch (TaskCanceledException)
+        catch (OperationCanceledException)
         {
         }
     } while (!cts.IsCancellationRequested);
