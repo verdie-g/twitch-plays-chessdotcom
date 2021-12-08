@@ -72,6 +72,7 @@ while (true)
         Console.Error.WriteLine($"Invalid mode '{args[0]}'");
     }
 
+    await HideHintsAsync(chessPage);
     await RunGameAsync(chessPage, twitch);
     await Task.Delay(TimeSpan.FromSeconds(15));
 }
@@ -157,6 +158,11 @@ async Task StartOnlineGameAsync(IPage page, string? playerName)
     {
         await Task.Delay(TimeSpan.FromSeconds(1));
     }
+}
+
+Task HideHintsAsync(IPage page)
+{
+    return page.EvaluateAsync("document.head.insertAdjacentHTML('beforeend', '<style>.hint { background-color: transparent; }</style>')");
 }
 
 async Task RunGameAsync(IPage page, TwitchClient twitchClient)
