@@ -473,7 +473,7 @@ List<Move> MovesToAlgebraicNotation(List<Move> moves)
             var m = ambiguousMoves[0];
             string not = (m.Capture ? "x" : "") + XyToFileRank(m.Dst.x, m.Dst.y);
             m.AlgebraicNotation = m.Piece.Type == PieceType.Pawn
-                ? not
+                ? (m.Capture ? XToFile(m.Src.x).ToString() : "") + not
                 : pieceTypeToLetter[m.Piece.Type] + not;
         }
         else
