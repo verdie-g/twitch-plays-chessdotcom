@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
+using System.Text.RegularExpressions;
 using System.Threading.Channels;
-using System.Threading.Tasks;
 using Microsoft.Playwright;
 using TwitchLib.Client;
 using TwitchLib.Client.Models;
@@ -195,14 +191,31 @@ async Task RunGameAsync(IPage page, TwitchClient twitchClient)
         }
         else
         {
-            var moveVotes = await CollectVotesAsync(votesChan.Reader, legalMoves, page);
+            var ballotBox = await CollectVotesAsync(votesChan.Reader, legalMoves, page);
             if (await HasGameEndedAsync(page))
             {
                 break;
             }
 
-            Move winningMove = ComputeWinningMove(moveVotes);
-            await ProcessMove(page, winningMove);
+            int moveVotes = ballotBox.Moves.Values.DefaultIfEmpty().Max();
+            if (moveVotes >= ballotBox.Resign && moveVotes >= ballotBox.Draw)
+            {
+                Move winningMove = ComputeWinningMove(ballotBox.Moves);
+                await ProcessMove(page, winningMove);
+            }
+            else if (ballotBox.Resign >= ballotBox.Draw && ballotBox.Resign >= moveVotes)
+            {
+                Console.WriteLine("Resigned");
+                await ResignAsync(page);
+            }
+            else if (ballotBox.Draw >= ballotBox.Resign && ballotBox.Draw >= moveVotes)
+            {
+                Console.WriteLine("Offering draw");
+                if (!await OfferDrawAsync(page))
+                {
+                    continue;
+                }
+            }
         }
 
         // Viewers could sometimes see that it's their turn but because of the stream delay, their vote is received too
@@ -301,10 +314,10 @@ async Task<List<Move>> ComputeLegalMoves(IPage page, PieceColor color)
     return MovesToAlgebraicNotation(moves);
 }
 
-async Task<Dictionary<Move, int>> CollectVotesAsync(ChannelReader<Vote> votesChan,
+async Task<BallotBox> CollectVotesAsync(ChannelReader<Vote> votesChan,
     Dictionary<string, Move> legalMoves, IPage page)
 {
-    Dictionary<Move, int> moveVotes = new();
+    BallotBox ballotBox = new();
     do
     {
         HashSet<string> usernames = new(StringComparer.Ordinal);
@@ -319,22 +332,35 @@ async Task<Dictionary<Move, int>> CollectVotesAsync(ChannelReader<Vote> votesCha
                     continue;
                 }
 
-                if (!legalMoves.TryGetValue(vote.Move.Replace("x", ""), out Move? move))
+                if (vote.Action == "(=)")
                 {
-                    Console.WriteLine($"{vote.Username} voted for an invalid move ({vote.Move})");
-                    continue;
+                    Console.WriteLine($"{vote.Username} voted for a draw");
+                    ballotBox.Draw += 1;
                 }
-
-                Console.WriteLine($"{vote.Username} voted for {move.AlgebraicNotation}");
-                if (!moveVotes.ContainsKey(move))
+                else if (Regex.IsMatch(vote.Action, "\\d-\\d")) // (e.g. 0-1)
                 {
-                    moveVotes[move] = 1;
-                    await AddArrowAsync(page, move);
-                    await UpdateArrowsOpacity(page, moveVotes, legalMoves);
+                    Console.WriteLine($"{vote.Username} voted to resign");
+                    ballotBox.Resign += 1;
                 }
                 else
                 {
-                    moveVotes[move] += 1;
+                    if (!legalMoves.TryGetValue(vote.Action.Replace("x", ""), out Move? move))
+                    {
+                        Console.WriteLine($"{vote.Username} voted for an invalid move ({vote.Action})");
+                        continue;
+                    }
+
+                    Console.WriteLine($"{vote.Username} voted for {move.AlgebraicNotation}");
+                    if (!ballotBox.Moves.ContainsKey(move))
+                    {
+                        ballotBox.Moves[move] = 1;
+                        await AddArrowAsync(page, move);
+                        await UpdateArrowsOpacity(page, ballotBox.Moves, legalMoves);
+                    }
+                    else
+                    {
+                        ballotBox.Moves[move] += 1;
+                    }
                 }
 
                 usernames.Add(vote.Username);
@@ -343,9 +369,9 @@ async Task<Dictionary<Move, int>> CollectVotesAsync(ChannelReader<Vote> votesCha
         catch (OperationCanceledException) when (voteStopCts.IsCancellationRequested)
         {
         }
-    } while (moveVotes.Count == 0 && !await HasGameEndedAsync(page));
+    } while (ballotBox.Count == 0 && !await HasGameEndedAsync(page));
 
-    return moveVotes;
+    return ballotBox;
 }
 
 async Task AddArrowAsync(IPage page, Move move)
@@ -435,6 +461,16 @@ async Task WaitForMoveAnimationAsync(IPage page)
 
         await Task.Delay(TimeSpan.FromMilliseconds(100));
     }
+}
+
+Task ResignAsync(IPage page)
+{
+   return page.ClickAsync(".icon-font-chess.flag");
+}
+
+Task<bool> OfferDrawAsync(IPage page)
+{
+    return Task.FromResult(false);
 }
 
 async Task GetLegalMoveForPieceAsync(IPage page, IElementHandle pieceEl, List<Move> moves)
@@ -579,4 +615,13 @@ enum PieceType
     Pawn,
 }
 
-record Vote(string Move, string Username);
+record Vote(string Action, string Username);
+
+record BallotBox
+{
+    public Dictionary<Move, int> Moves { get; } = new();
+    public int Resign { get; set; }
+    public int Draw { get; set; }
+
+    public int Count => Moves.Count + Resign + Draw;
+}
