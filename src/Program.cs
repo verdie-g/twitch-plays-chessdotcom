@@ -146,8 +146,24 @@ async Task StartOnlineGameAsync(IPage page, string? playerName)
 {
     await page.GotoAsync("play/online");
 
-    // Play.
-    await page.ClickAsync(".new-game-margin-component > button");
+    if (playerName != null)
+    {
+        // Play with friend.
+        await page.ClickAsync(".new-game-option-handshake");
+        // Input friend nane.
+        await page.FillAsync(".play-friend-user-search-user-search input", playerName);
+        // Click on autocomplete.
+        await page.ClickAsync(".play-friend-user-search-user-search > ul > li");
+        // Uncheck rated game.
+        await page.UncheckAsync(".new-game-margin-component input[type=checkbox] + label");
+        // Play.
+        await page.ClickAsync(".custom-game-options-play-button");
+    }
+    else
+    {
+        // Play.
+        await page.ClickAsync(".new-game-margin-component > button");
+    }
 
     // Wait for game to start by looking for the chat icon.
     while (!await page.IsVisibleAsync(".quick-chat-icon-bottom"))
