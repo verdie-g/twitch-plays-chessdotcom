@@ -57,15 +57,21 @@ while (true)
     Console.Clear();
     if (args[0] == "offline")
     {
+        if (args.Length < 2)
+        {
+            Console.Error.WriteLine("Bot name required");
+            return;
+        }
         await StartOfflineGameAsync(chessPage, args[1]);
     }
     else if (args[0] == "online")
     {
-        await StartOnlineGameAsync(chessPage, args[1]);
+        await StartOnlineGameAsync(chessPage, args.Length > 1 ? args[1] : null);
     }
     else
     {
         Console.Error.WriteLine($"Invalid mode '{args[0]}'");
+        return;
     }
 
     await HideHintsAsync(chessPage);
