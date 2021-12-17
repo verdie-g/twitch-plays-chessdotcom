@@ -606,6 +606,9 @@ TwitchClient CreateTwitchClient()
 
 void ListenForVotes(TwitchClient twitchClient, ChannelWriter<Vote> votesChan)
 {
+    twitchClient.OnError += (_, e) => Console.WriteLine("Error in the client protocol: " + e.Exception);
+    twitchClient.OnConnectionError += (_, e) => Console.WriteLine("Error: " + e.Error.Message);
+    twitchClient.OnDisconnected += (_, _) => Console.WriteLine("Bot was disconnected");
     twitchClient.OnMessageReceived += (_, e) =>
     {
         if (!e.ChatMessage.Message.StartsWith('!'))
