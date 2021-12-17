@@ -32,7 +32,7 @@ Dictionary<PieceType, char> pieceTypeToLetter = new()
 
 if (args.Length == 0)
 {
-    Console.Error.WriteLine("use:\n- offline [botname]\n- online  [playername]");
+    Console.Error.WriteLine("use:\n- offline  [botname]\n- online   [playername]\nanalysis [FEN]");
     return;
 }
 
@@ -67,6 +67,16 @@ while (true)
     else if (args[0] == "online")
     {
         await StartOnlineGameAsync(chessPage, args.Length > 1 ? args[1] : null);
+    }
+    else if (args[0] == "analysis")
+    {
+        if (args.Length < 2)
+        {
+            Console.Error.WriteLine("FEN required");
+            return;
+        }
+
+        await StartAnalysisAsync(chessPage, args[1]);
     }
     else
     {
@@ -180,6 +190,18 @@ async Task StartOnlineGameAsync(IPage page, string? playerName)
     {
         await Task.Delay(TimeSpan.FromSeconds(1));
     }
+}
+
+async Task StartAnalysisAsync(IPage page, string fen)
+{
+    await page.GotoAsync("analysis");
+
+    // Click on load FEN.
+    await page.ClickAsync(".tab-analysis-component .chess-pawn-rook");
+    // Input FEN.
+    await page.FillAsync(".tab-analysis-component .accordion-open input", fen);
+    // Load.
+    await page.ClickAsync(".tab-analysis-component .load-from-fen-button");
 }
 
 Task<bool> IsInGameAsync(IPage page)
