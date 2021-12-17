@@ -233,7 +233,7 @@ async Task RunGameAsync(IPage page, TwitchClient twitchClient)
             break;
         }
 
-        Dictionary<string, Move> legalMoves = new(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, Move> legalMoves = new(StringComparer.Ordinal);
         foreach (var m in await ComputeLegalMoves(page, playerColor))
         {
             legalMoves[m.AlgebraicNotation.Replace("x", "")] = m;
