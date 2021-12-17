@@ -152,6 +152,11 @@ async Task StartOnlineGameAsync(IPage page, string? playerName)
 {
     await page.GotoAsync("play/online");
 
+    if (await IsInGameAsync(page)) // Resume game.
+    {
+        return;
+    }
+
     if (playerName != null)
     {
         // Play with friend.
@@ -171,11 +176,16 @@ async Task StartOnlineGameAsync(IPage page, string? playerName)
         await page.ClickAsync(".new-game-margin-component > button");
     }
 
-    // Wait for game to start by looking for the chat icon.
-    while (!await page.IsVisibleAsync(".quick-chat-icon-bottom"))
+    while (!await IsInGameAsync(page))
     {
         await Task.Delay(TimeSpan.FromSeconds(1));
     }
+}
+
+Task<bool> IsInGameAsync(IPage page)
+{
+    // Look for the chat icon.
+    return page.IsVisibleAsync(".quick-chat-icon-bottom");
 }
 
 Task HideHintsAsync(IPage page)
