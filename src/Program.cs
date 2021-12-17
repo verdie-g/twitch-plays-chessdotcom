@@ -213,7 +213,7 @@ async Task RunGameAsync(IPage page, TwitchClient twitchClient)
         }
         else
         {
-            var ballotBox = await CollectVotesAsync(votesChan.Reader, legalMoves, page);
+            var ballotBox = await CollectVotesAsync(votesChan.Reader, legalMoves, page, playerColor);
             if (await HasGameEndedAsync(page))
             {
                 break;
@@ -337,7 +337,7 @@ async Task<List<Move>> ComputeLegalMoves(IPage page, PieceColor color)
 }
 
 async Task<BallotBox> CollectVotesAsync(ChannelReader<Vote> votesChan,
-    Dictionary<string, Move> legalMoves, IPage page)
+    Dictionary<string, Move> legalMoves, IPage page, PieceColor playerColor)
 {
     BallotBox ballotBox = new();
     do
@@ -376,7 +376,7 @@ async Task<BallotBox> CollectVotesAsync(ChannelReader<Vote> votesChan,
                     if (!ballotBox.Moves.ContainsKey(move))
                     {
                         ballotBox.Moves[move] = 1;
-                        await AddArrowAsync(page, move);
+                        await AddArrowAsync(page, move, playerColor);
                         await UpdateArrowsOpacity(page, ballotBox.Moves, legalMoves);
                     }
                     else
@@ -396,7 +396,7 @@ async Task<BallotBox> CollectVotesAsync(ChannelReader<Vote> votesChan,
     return ballotBox;
 }
 
-async Task AddArrowAsync(IPage page, Move move)
+async Task AddArrowAsync(IPage page, Move move, PieceColor playerColor)
 {
     var boardEl = (await page.QuerySelectorAsync("chess-board"))!;
     var pieceEl = await boardEl.QuerySelectorAsync(".piece" + XyToSquareClass(move.Src.x, move.Src.y));
@@ -405,11 +405,14 @@ async Task AddArrowAsync(IPage page, Move move)
         return;
     }
 
+    // If the player is playing black, the board is inverted.
+    int color = playerColor == PieceColor.White ? 1 : -1;
+
     var pieceBoundingBox = (await pieceEl.BoundingBoxAsync())!;
     float pieceCenterX = pieceBoundingBox.X + pieceBoundingBox.Width / 2;
     float pieceCenterY = pieceBoundingBox.Y + pieceBoundingBox.Height / 2;
-    float dstX = pieceCenterX + pieceBoundingBox.Width * (move.Dst.x - move.Src.x);
-    float dstY = pieceCenterY - pieceBoundingBox.Height * (move.Dst.y - move.Src.y);
+    float dstX = pieceCenterX + color * pieceBoundingBox.Width * (move.Dst.x - move.Src.x);
+    float dstY = pieceCenterY - color * pieceBoundingBox.Height * (move.Dst.y - move.Src.y);
     await page.Mouse.MoveAsync(pieceCenterX, pieceCenterY);
     await page.Mouse.DownAsync(new MouseDownOptions { Button = MouseButton.Right });
     await page.Mouse.MoveAsync(dstX, dstY);
