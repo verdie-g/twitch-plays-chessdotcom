@@ -375,7 +375,9 @@ async Task<BallotBox> CollectVotesAsync(ChannelReader<Vote> votesChan,
     do
     {
         HashSet<string> usernames = new(StringComparer.Ordinal);
-        CancellationTokenSource voteStopCts = new(ComputeVoteWindow(legalMoves.Count));
+        TimeSpan voteWindow = ComputeVoteWindow(legalMoves.Count);
+        Console.WriteLine($"{(long)voteWindow.TotalSeconds} seconds to vote");
+        CancellationTokenSource voteStopCts = new(voteWindow);
         try
         {
             await foreach (var vote in votesChan.ReadAllAsync(voteStopCts.Token))
