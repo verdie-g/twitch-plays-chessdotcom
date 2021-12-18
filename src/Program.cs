@@ -431,7 +431,8 @@ async Task<BallotBox> CollectVotesAsync(ChannelReader<Vote> votesChan,
 // Returns the voting window depending on the number of possible moves.
 TimeSpan ComputeVoteWindow(int legalMovesCount)
 {
-    return TimeSpan.FromSeconds(15) + TimeSpan.FromSeconds(20 * legalMovesCount / 30.0);
+    double averageLegalMoves = 40.0;
+    return TimeSpan.FromSeconds(15) + TimeSpan.FromSeconds(20 * legalMovesCount / averageLegalMoves);
 }
 
 async Task AddArrowAsync(IPage page, Move move, PieceColor playerColor)
