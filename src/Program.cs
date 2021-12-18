@@ -559,6 +559,8 @@ async Task GetLegalMoveForPieceAsync(IPage page, IElementHandle pieceEl, List<Mo
         bool capture = hintClasses[0].StartsWith("capture", StringComparison.Ordinal);
         int hintX = hintClasses[1][^2] - '0' - 1;
         int hintY = hintClasses[1][^1] - '0' - 1;
+        // En passant.
+        capture |= pieceInfo.Piece.Type == PieceType.Pawn && pieceInfo.Pos.x != hintX;
 
         moves.Add(new Move(pieceInfo.Piece, pieceInfo.Pos, (hintX, hintY), capture));
     }
