@@ -375,7 +375,7 @@ async Task<BallotBox> CollectVotesAsync(ChannelReader<Vote> votesChan,
     do
     {
         HashSet<string> usernames = new(StringComparer.Ordinal);
-        CancellationTokenSource voteStopCts = new(TimeSpan.FromSeconds(30));
+        CancellationTokenSource voteStopCts = new(ComputeVoteWindow(legalMoves.Count));
         try
         {
             await foreach (var vote in votesChan.ReadAllAsync(voteStopCts.Token))
@@ -426,6 +426,12 @@ async Task<BallotBox> CollectVotesAsync(ChannelReader<Vote> votesChan,
     } while (ballotBox.Count == 0 && !await HasGameEndedAsync(page));
 
     return ballotBox;
+}
+
+// Returns the voting window depending on the number of possible moves.
+TimeSpan ComputeVoteWindow(int legalMovesCount)
+{
+    return TimeSpan.FromSeconds(15) + TimeSpan.FromSeconds(20 * legalMovesCount / 30.0);
 }
 
 async Task AddArrowAsync(IPage page, Move move, PieceColor playerColor)
