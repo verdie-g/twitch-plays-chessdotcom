@@ -405,7 +405,8 @@ async Task<BallotBox> CollectVotesAsync(ChannelReader<Vote> votesChan,
                 }
                 else
                 {
-                    if (!legalMoves.TryGetValue(vote.Action.Replace("x", ""), out Move? move))
+                    string voteMove = TranslateCastleMove(vote.Action, playerColor).Replace("x", "");
+                    if (!legalMoves.TryGetValue(voteMove, out Move? move))
                     {
                         Console.WriteLine($"{vote.Username} voted for an invalid move ({vote.Action})");
                         continue;
@@ -442,6 +443,16 @@ TimeSpan ComputeVoteWindow(int legalMovesCount)
 {
     double averageLegalMoves = 40.0;
     return TimeSpan.FromSeconds(15) + TimeSpan.FromSeconds(20 * legalMovesCount / averageLegalMoves);
+}
+
+string TranslateCastleMove(string move, PieceColor playerColor)
+{
+    return move switch
+    {
+        "O-O" or "0-0" => playerColor == PieceColor.White ? "Kg1" : "Kg8",
+        "O-O-O" or "0-0-0" => playerColor == PieceColor.White ? "Kc1" : "Kc8",
+        _ => move,
+    };
 }
 
 async Task AddArrowAsync(IPage page, Move move, PieceColor playerColor)
