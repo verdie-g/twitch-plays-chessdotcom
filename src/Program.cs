@@ -372,11 +372,16 @@ async Task<BallotBox> CollectVotesAsync(ChannelReader<Vote> votesChan,
     Dictionary<string, Move> legalMoves, IPage page, PieceColor playerColor)
 {
     BallotBox ballotBox = new();
+    bool firstLoop = true;
     do
     {
         HashSet<string> usernames = new(StringComparer.Ordinal);
         TimeSpan voteWindow = ComputeVoteWindow(legalMoves.Count);
-        Console.WriteLine($"{(long)voteWindow.TotalSeconds} seconds to vote");
+        if (firstLoop)
+        {
+            Console.WriteLine($"{(long)voteWindow.TotalSeconds} seconds to vote");
+        }
+
         CancellationTokenSource voteStopCts = new(voteWindow);
         try
         {
@@ -425,6 +430,8 @@ async Task<BallotBox> CollectVotesAsync(ChannelReader<Vote> votesChan,
         catch (OperationCanceledException) when (voteStopCts.IsCancellationRequested)
         {
         }
+
+        firstLoop = false;
     } while (ballotBox.Count == 0 && !await HasGameEndedAsync(page));
 
     return ballotBox;
