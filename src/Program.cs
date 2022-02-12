@@ -106,7 +106,13 @@ async Task LoginAsync(IPage page)
                 // Wait for Cloudflare DDOS check.
                 UrlFunc = url => !new Uri(url).AbsolutePath.EndsWith("/login_check", StringComparison.Ordinal),
             });
-    } while (!page.Url.EndsWith("/home", StringComparison.Ordinal));
+        if (page.Url.EndsWith("/home", StringComparison.Ordinal))
+        {
+            break;
+        }
+
+        await Task.Delay(TimeSpan.FromSeconds(30));
+    } while (true);
 
     await CloseTrialModalAsync(page);
     await CloseBottomBannerAsync(page);
