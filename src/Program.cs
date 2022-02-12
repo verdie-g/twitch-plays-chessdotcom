@@ -100,11 +100,12 @@ async Task LoginAsync(IPage page)
         await page.FillAsync("#username", chessDotComUserName);
         await page.FillAsync("#password", chessDotComPassword);
         await page.CheckAsync("#_remember_me");
-        await page.ClickAsync("#login");
-        if (!page.Url.EndsWith("/home", StringComparison.Ordinal))
-        {
-            await page.WaitForNavigationAsync();
-        }
+        await page.RunAndWaitForNavigationAsync(() => page.ClickAsync("#login"),
+            new PageRunAndWaitForNavigationOptions
+            {
+                // Wait for Cloudflare DDOS check.
+                UrlFunc = url => !new Uri(url).AbsolutePath.EndsWith("/login_check", StringComparison.Ordinal),
+            });
     } while (!page.Url.EndsWith("/home", StringComparison.Ordinal));
 
     await CloseTrialModalAsync(page);
