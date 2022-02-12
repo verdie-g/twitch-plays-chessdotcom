@@ -47,7 +47,8 @@ var chessPage = await browser.NewPageAsync(new BrowserNewPageOptions
 {
     ScreenSize = new ScreenSize { Width = 1920, Height = 1080 },
     ViewportSize = new ViewportSize { Width = 1600, Height = 900 },
-    UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36",
+    UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.82 Safari/537.36",
+    ExtraHTTPHeaders = new [] { new KeyValuePair<string, string>("accept-language", "en-US;q=0.8") },
     BaseURL = "https://www.chess.com",
 });
 
