@@ -667,7 +667,18 @@ void ListenForVotes(TwitchClient twitchClient, ChannelWriter<Vote> votesChan)
 {
     twitchClient.OnError += (_, e) => Console.WriteLine("Error in the client protocol: " + e.Exception);
     twitchClient.OnConnectionError += (_, e) => Console.WriteLine("Error: " + e.Error.Message);
-    twitchClient.OnDisconnected += (_, _) => Console.WriteLine("Bot was disconnected");
+    twitchClient.OnDisconnected += (_, _) =>
+    {
+        Console.Error.WriteLine("Bot was disconnected. Reconnecting");
+        Task.Run(async () =>
+        {
+            while (!twitchClient.Connect())
+            {
+                Console.Error.WriteLine("An error occured while reconnecting");
+                await Task.Delay(TimeSpan.FromSeconds(30));
+            }
+        });
+    };
     twitchClient.OnMessageReceived += (_, e) =>
     {
         if (!e.ChatMessage.Message.StartsWith('!'))
