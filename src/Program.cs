@@ -115,13 +115,13 @@ async Task LoginAsync(IPage page)
         await Task.Delay(TimeSpan.FromSeconds(30));
     } while (true);
 
-    await CloseTrialModalAsync(page);
+    await CloseModalAsync(page, ".modal-trial-component");
     await CloseBottomBannerAsync(page);
 }
 
-async Task CloseTrialModalAsync(IPage page)
+async Task CloseModalAsync(IPage page, string modalSelector)
 {
-    var modalEl = await page.QuerySelectorAsync(".modal-trial-component");
+    var modalEl = await page.QuerySelectorAsync(modalSelector);
     if (modalEl == null)
     {
         return;
@@ -157,6 +157,9 @@ async Task CloseBottomBannerAsync(IPage page)
 async Task StartOfflineGameAsync(IPage page, int botIndex)
 {
     await page.GotoAsync("play/computer");
+
+    // Close first time modal.
+    await CloseModalAsync(page, ".modal-first-time-component");
 
     // Select opponent.
     var botComponentEls = await page.QuerySelectorAllAsync(".bot-component");
