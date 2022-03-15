@@ -167,7 +167,7 @@ async Task StartOfflineGameAsync(IPage page, int botIndex)
     await page.ClickAsync(".selection-menu-footer > button");
 
     // Play.
-    await page.ClickAsync(".selection-menu-footer > button");
+    await page.ClickAsync(".selection-footer > button");
 }
 
 async Task StartOnlineGameAsync(IPage page, string? playerName)
