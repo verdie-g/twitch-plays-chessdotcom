@@ -32,7 +32,7 @@ Dictionary<PieceType, char> pieceTypeToLetter = new()
 
 if (args.Length == 0)
 {
-    Console.Error.WriteLine("use:\n- offline  [botname]\n- online   [playername]\nanalysis [FEN]");
+    Console.Error.WriteLine("use:\n- offline  [botindex]\n- online   [playername]\nanalysis [FEN]");
     return;
 }
 
@@ -63,7 +63,7 @@ while (true)
             Console.Error.WriteLine("Bot name required");
             return;
         }
-        await StartOfflineGameAsync(chessPage, args[1]);
+        await StartOfflineGameAsync(chessPage, int.Parse(args[1]));
     }
     else if (args[0] == "online")
     {
@@ -154,12 +154,13 @@ async Task CloseBottomBannerAsync(IPage page)
     await buttonEl.ClickAsync();
 }
 
-async Task StartOfflineGameAsync(IPage page, string botName)
+async Task StartOfflineGameAsync(IPage page, int botIndex)
 {
     await page.GotoAsync("play/computer");
 
     // Select opponent.
-    await page.ClickAsync($"[data-bot-name=\"{botName}\"]");
+    var botComponentEls = await page.QuerySelectorAllAsync(".bot-component");
+    await botComponentEls[botIndex].ClickAsync();
     await page.ClickAsync(".selection-menu-footer > button");
 
     // Play.
