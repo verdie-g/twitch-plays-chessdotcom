@@ -665,10 +665,18 @@ TwitchClient CreateTwitchClient()
 
 void ListenForVotes(TwitchClient twitchClient, ChannelWriter<Vote> votesChan)
 {
+    bool connecting = false;
+
     twitchClient.OnError += (_, e) => Console.WriteLine("Error in the client protocol: " + e.Exception);
     twitchClient.OnConnectionError += (_, e) => Console.WriteLine("Error: " + e.Error.Message);
     twitchClient.OnDisconnected += (_, _) =>
     {
+        if (connecting)
+        {
+            return;
+        }
+
+        connecting = true;
         Console.Error.WriteLine("Bot was disconnected. Reconnecting");
         Task.Run(async () =>
         {
@@ -677,6 +685,8 @@ void ListenForVotes(TwitchClient twitchClient, ChannelWriter<Vote> votesChan)
                 Console.Error.WriteLine("An error occured while reconnecting");
                 await Task.Delay(TimeSpan.FromSeconds(30));
             }
+
+            connecting = false;
         });
     };
     twitchClient.OnMessageReceived += (_, e) =>
