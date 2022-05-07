@@ -164,10 +164,10 @@ async Task StartOfflineGameAsync(IPage page, int botIndex)
     // Select opponent.
     var botComponentEls = await page.QuerySelectorAllAsync(".bot-component");
     await botComponentEls[botIndex].ClickAsync();
-    await page.ClickAsync(".selection-menu-footer > button");
+    await page.ClickAsync("#board-layout-sidebar button:last-child");
 
     // Play.
-    await page.ClickAsync(".selection-menu-footer > button");
+    await page.ClickAsync("#board-layout-sidebar button:last-child");
 }
 
 async Task StartOnlineGameAsync(IPage page, string? playerName)
